@@ -96,10 +96,8 @@ object Huffman {
   /**
    * Checks whether the list `trees` contains only one single code tree.
    */
-    def singleton(trees: List[CodeTree]): Boolean = trees match{
-      case(x::y::Nil) => false
-        case(z::Nil) => true
-        case(Nil) => false
+    def singleton(trees: List[CodeTree]): Boolean = {
+      trees.size == 1
     }
   
   /**
@@ -169,22 +167,39 @@ object Huffman {
    * This function decodes the bit sequence `bits` using the code tree `tree` and returns
    * the resulting list of characters.
    */
-    def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
-      bits match{
-        case x::y::Nil => {
-          //make work with the empty list returning somethign
+//  def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
+//    bits match{
+//      //make work with the empty list returning something
+//      case x::y::Nil => {
+//        tree match{
+//          case Fork(left,right,chars,weight) => bits.head match{
+//            case 0 => decode(left,List(x))
+//            case 1 => decode(right,List(x))
+//          }
+//          case Leaf(char,weight) => char::decode(tree,List(y))
+//        }
+//      }
+//      case x::Nil => tree match{
+//        case Fork(left,right,chars,weight) => bits.head match{
+//          case 0 => decode(left,List(x))
+//          case 1 => decode(right,List(x))
+//        }
+//        case Leaf(char,weight) => List(char)
+//      }
+//      case Nil => throw new Error("exhausted list")
+//    }
+//
+//  }
 
-        }
+    def decode(tree: CodeTree, bits: List[Bit]): List[Char] = {
+  def loop(tree: CodeTree, subTree: CodeTree, bits: List[Bit], chars: List[Char]): List[Char] = {
+      subTree match {
+        case Fork(l, r, c, w) => loop(tree, if (bits.head == 0) l else if (bits.head == 1) r else throw new Error("wrong bit"), bits.tail, chars)
+        case Leaf(c, w) => if (bits.isEmpty) chars:::List(c) else loop(tree, tree, bits, chars:::List(c))
       }
-      tree match{
-        case Fork(left,right,chars,weight) => bits.head match{
-                                              case 0 => decode(left,x)
-                                              case 1 => decode(right,x)
-                                              }
-        case Leaf(char,weight) => char::decode(tree,y)
-      }
-    }
-  
+  }
+  loop(tree, tree, bits, List())
+}
   /**
    * A Huffman coding tree for the French language.
    * Generated from the data given at
